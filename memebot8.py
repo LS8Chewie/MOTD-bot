@@ -9,8 +9,8 @@ from discord.ext import tasks
 TOKEN = os.getenv("DISCORD_TOKEN")
 CHANNEL_ID_RAW = os.getenv("CHANNEL_ID")
 MEME_FOLDER = os.getenv("MEME_FOLDER", "memes")
-SCHEDULE_HOUR = int(os.getenv("SCHEDULE_HOUR_UTC", "17"))
-SCHEDULE_MINUTE = int(os.getenv("SCHEDULE_MINUTE_UTC", "57"))
+SCHEDULE_HOUR = int(os.getenv("SCHEDULE_HOUR_UTC", "18"))
+SCHEDULE_MINUTE = int(os.getenv("SCHEDULE_MINUTE_UTC", "28"))
 POST_ON_STARTUP = os.getenv("POST_ON_STARTUP", "false").strip().lower() in {
     "1",
     "true",
@@ -32,6 +32,9 @@ logging.basicConfig(
     ],
 )
 logger = logging.getLogger("memebot")
+
+logger.info("\n%s", "=" * 72)
+logger.info("Starting new memebot instance (pid=%s)", os.getpid())
 
 if not TOKEN:
     raise RuntimeError("Missing DISCORD_TOKEN environment variable.")
@@ -67,10 +70,19 @@ def save_sent_memes(sent_memes: set[str]) -> None:
     )
 )
 async def meme_of_the_day():
+    await post_memes(is_startup=False)
+
+
+async def post_memes(is_startup: bool) -> None:
     channel = client.get_channel(CHANNEL_ID)
 
     if channel is None:
         channel = await client.fetch_channel(CHANNEL_ID)
+
+    if is_startup:
+        await channel.send("⚙️ **Testing mode**\n> Posting memes...")
+    else:
+        await channel.send("✅ **Normal operation**\n> Posting memes...")
 
     memes = [
         f
@@ -91,14 +103,6 @@ async def meme_of_the_day():
             MEME_FOLDER,
             SENT_MEMES_FILE,
         )
-
-        await channel.send(
-            f"⚠️ Meme storage depleted.\n"
-            f"{len(sent_memes)} memes already sent.\n"
-            f"{len(memes)} total memes available.\n"
-            "Add more memes or clear `sent_memes.txt`."
-
-        )
         return
 
     selected_memes = random.sample(available_memes, min(5, len(available_memes)))
@@ -112,9 +116,16 @@ async def meme_of_the_day():
     save_sent_memes(sent_memes)
     logger.info("Updated sent-meme memory at %s", SENT_MEMES_FILE)
 
+    if not is_startup:
+        await channel.send("✅ **Normal operation complete**")
 
     logger.info("All memes sent successfully. Shutting down bot.")
     await client.close()
+
+
+@meme_of_the_day.before_loop
+async def before_meme_loop():
+    await client.wait_until_ready()
 
 
 @client.event
@@ -128,14 +139,9 @@ async def on_ready():
         SCHEDULE_MINUTE,
     )
 
-    channel = client.get_channel(CHANNEL_ID)
-    if channel is None:
-        channel = await client.fetch_channel(CHANNEL_ID)
-
     if POST_ON_STARTUP:
-        logger.info("POST_ON_STARTUP is enabled; posting memes now.")
-        await channel.send("⚙️ **Testing mode**\n> Posting memes...")
-        await meme_of_the_day()
+        logger.info("POST_ON_STARTUP is enabled; posting in testing mode now.")
+        await post_memes(is_startup=True)
 
     if not meme_of_the_day.is_running():
         meme_of_the_day.start()
