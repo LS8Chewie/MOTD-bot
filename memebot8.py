@@ -9,8 +9,8 @@ from discord.ext import tasks
 TOKEN = os.getenv("DISCORD_TOKEN")
 CHANNEL_ID_RAW = os.getenv("CHANNEL_ID")
 MEME_FOLDER = os.getenv("MEME_FOLDER", "memes")
-SCHEDULE_HOUR = int(os.getenv("SCHEDULE_HOUR_UTC", "18"))
-SCHEDULE_MINUTE = int(os.getenv("SCHEDULE_MINUTE_UTC", "33"))
+SCHEDULE_HOUR = int(os.getenv("SCHEDULE_HOUR_UTC", "16"))
+SCHEDULE_MINUTE = int(os.getenv("SCHEDULE_MINUTE_UTC", "0"))
 POST_ON_STARTUP = os.getenv("POST_ON_STARTUP", "false").strip().lower() in {
     "1",
     "true",
@@ -82,7 +82,7 @@ async def post_memes(is_startup: bool) -> None:
     if is_startup:
         await channel.send("⚙️ **Testing mode**\n> Posting memes...")
     else:
-        await channel.send("✅ **Normal operation**\n> Posting memes...")
+        await channel.send(" _**BEGINING MEME INNOCULATION**_\n _entertaining masses..._")
 
     memes = [
         f
@@ -117,7 +117,7 @@ async def post_memes(is_startup: bool) -> None:
     logger.info("Updated sent-meme memory at %s", SENT_MEMES_FILE)
 
     if not is_startup:
-        await channel.send("✅ **Normal operation complete. Shutting down**")
+        await channel.send(" _**MEME INNOCULATION IS COMPLETE. Shutting down.**_")
 
     logger.info("All memes sent successfully. Shutting down bot.")
     await client.close()
