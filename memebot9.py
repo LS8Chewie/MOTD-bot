@@ -9,7 +9,7 @@ from discord.ext import tasks
 TOKEN = os.getenv("DISCORD_TOKEN")
 CHANNEL_ID_RAW = os.getenv("CHANNEL_ID")
 MEME_FOLDER = os.getenv("MEME_FOLDER", "memes")
-SCHEDULE_HOUR = int(os.getenv("SCHEDULE_HOUR_UTC", "15"))
+SCHEDULE_HOUR = int(os.getenv("SCHEDULE_HOUR_UTC", "16"))
 SCHEDULE_MINUTE = int(os.getenv("SCHEDULE_MINUTE_UTC", "0"))
 POST_ON_STARTUP = os.getenv("POST_ON_STARTUP", "false").strip().lower() in {
     "1",
@@ -73,16 +73,42 @@ async def meme_of_the_day():
     await post_memes(is_startup=False)
 
 
-async def post_memes(is_startup: bool) -> None:
+async def get_target_channel() -> discord.abc.Messageable:
     channel = client.get_channel(CHANNEL_ID)
 
     if channel is None:
         channel = await client.fetch_channel(CHANNEL_ID)
 
+    if not hasattr(channel, "send"):
+        raise RuntimeError(f"Configured CHANNEL_ID {CHANNEL_ID} does not support sending messages.")
+
+    return channel
+
+
+async def send_and_publish(
+    channel: discord.abc.Messageable,
+    *,
+    content: str | None = None,
+    file: discord.File | None = None,
+) -> discord.Message:
+    message = await channel.send(content=content, file=file)
+
+    try:
+        await message.publish()
+        logger.info("Published message %s to followers.", message.id)
+    except (discord.Forbidden, discord.HTTPException) as exc:
+        logger.warning("Could not publish message %s: %s", message.id, exc)
+
+    return message
+
+
+async def post_memes(is_startup: bool) -> None:
+    channel = await get_target_channel()
+
     if is_startup:
-        await channel.send("⚙️ **Testing mode**\n> Posting memes...")
+        await send_and_publish(channel, content="⚙️ **Testing mode**\n> Posting memes...")
     else:
-        await channel.send(" _**BEGINING MEME INNOCULATION**_\n _entertaining masses..._")
+        await send_and_publish(channel, content=" _**BEGINING MEME INNOCULATION**_\n _entertaining masses..._")
 
     memes = [
         f
@@ -109,7 +135,7 @@ async def post_memes(is_startup: bool) -> None:
 
     for meme in selected_memes:
         meme_path = os.path.join(MEME_FOLDER, meme)
-        await channel.send(file=discord.File(meme_path))
+        await send_and_publish(channel, file=discord.File(meme_path))
         sent_memes.add(meme)
         logger.info("Posted meme: %s", meme)
 
@@ -117,7 +143,7 @@ async def post_memes(is_startup: bool) -> None:
     logger.info("Updated sent-meme memory at %s", SENT_MEMES_FILE)
 
     if not is_startup:
-        await channel.send(" _**MEME INNOCULATION IS COMPLETE. Shutting down.**_")
+        await send_and_publish(channel, content=" _**MEME INNOCULATION IS COMPLETE. Shutting down.**_")
 
     logger.info("All memes sent successfully. Shutting down bot.")
     await client.close()
@@ -133,6 +159,7 @@ async def on_ready():
     logger.info("Logged in as %s", client.user)
     logger.info("Writing logs to %s", LOG_FILE)
     logger.info("Tracking sent memes in %s", SENT_MEMES_FILE)
+    logger.info("Configured target channel from CHANNEL_ID env var: %s", CHANNEL_ID)
     logger.info(
         "Next scheduled post will happen at %02d:%02d UTC",
         SCHEDULE_HOUR,
