@@ -9,7 +9,7 @@ from discord.ext import tasks
 TOKEN = os.getenv("DISCORD_TOKEN")
 CHANNEL_ID_RAW = os.getenv("CHANNEL_ID")
 MEME_FOLDER = os.getenv("MEME_FOLDER", "memes")
-SCHEDULE_HOUR = int(os.getenv("SCHEDULE_HOUR_UTC", "16"))
+SCHEDULE_HOUR = int(os.getenv("SCHEDULE_HOUR_UTC", "18"))
 SCHEDULE_MINUTE = int(os.getenv("SCHEDULE_MINUTE_UTC", "0"))
 POST_ON_STARTUP = os.getenv("POST_ON_STARTUP", "false").strip().lower() in {
     "1",
