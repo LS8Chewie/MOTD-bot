@@ -1,0 +1,33 @@
+2026-03-15 07:39:44,071 | INFO | 
+========================================================================
+2026-03-15 07:39:44,072 | INFO | Starting new memebot instance (pid=20784)
+2026-03-15 07:39:44,073 | INFO | Acquired single-instance lock at C:\DiscordBots\memebot\memebot.lock
+2026-03-15 07:39:44,247 | WARNING | PyNaCl is not installed, voice will NOT be supported
+2026-03-15 07:39:44,248 | WARNING | davey is not installed, voice will NOT be supported
+2026-03-15 07:39:44,608 | INFO | logging in using static token
+2026-03-15 07:39:52,926 | INFO | Shard ID None has connected to Gateway (Session ID: 52878b9c6fcf93583be68f023d041742).
+2026-03-15 07:39:54,987 | INFO | Logged in as F.A.R.T#8447
+2026-03-15 07:39:54,987 | INFO | Writing logs to C:\DiscordBots\memebot\memebot-03202615-073943.log
+2026-03-15 07:39:54,987 | INFO | Tracking sent memes in C:\DiscordBots\memebot\sent_memes.txt
+2026-03-15 07:39:54,988 | INFO | Configured target channel from CHANNEL_ID env var: 1480255446999629925
+2026-03-15 07:39:54,988 | INFO | Message publish is enabled
+2026-03-15 07:39:54,988 | INFO | Meme grouping is disabled (individual mode) (GROUP_COUNT=0, UNGROUPED_MESSAGE_COUNT=3, MAX_FILES_PER_MESSAGE=3)
+2026-03-15 07:39:54,988 | INFO | Schedule configured from env hour='12' minute='30'; effective CST time 12:30.
+2026-03-15 07:39:54,988 | INFO | Current CST time is 07:39; next scheduled post is 12:30 CST.
+2026-03-15 07:39:54,989 | INFO | Scheduled time has not passed yet; waiting for task loop trigger.
+2026-03-15 08:36:18,409 | INFO | Shard ID None has successfully RESUMED session 52878b9c6fcf93583be68f023d041742.
+2026-03-15 09:42:05,718 | INFO | Shard ID None has successfully RESUMED session 52878b9c6fcf93583be68f023d041742.
+2026-03-15 12:30:00,652 | INFO | Published message 1482793005961314456 to followers.
+2026-03-15 12:30:01,544 | INFO | Published message 1482793009262366850 to followers.
+2026-03-15 12:30:01,544 | INFO | Sent meme as individual message: pinterest_image_1763663886062.jpg
+2026-03-15 12:30:02,251 | INFO | Published message 1482793012324204798 to followers.
+2026-03-15 12:30:02,252 | INFO | Sent meme as individual message: pinterest_image_1763663886063.jpg
+2026-03-15 12:30:03,187 | INFO | Published message 1482793014932803675 to followers.
+2026-03-15 12:30:03,188 | INFO | Sent meme as individual message: pinterest_image_1763663886065.jpg
+2026-03-15 12:30:03,188 | INFO | Queued sent meme: pinterest_image_1763663886062.jpg
+2026-03-15 12:30:03,188 | INFO | Queued sent meme: pinterest_image_1763663886063.jpg
+2026-03-15 12:30:03,188 | INFO | Queued sent meme: pinterest_image_1763663886065.jpg
+2026-03-15 12:30:03,190 | INFO | Updated sent-meme memory at C:\DiscordBots\memebot\sent_memes.txt
+2026-03-15 12:30:03,476 | INFO | Published message 1482793018145898622 to followers.
+2026-03-15 12:30:03,477 | INFO | All memes sent successfully. Shutting down bot.
+2026-03-15 12:30:03,482 | INFO | Released instance lock at C:\DiscordBots\memebot\memebot.lock

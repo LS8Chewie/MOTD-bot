@@ -1,5 +1,6 @@
 # NOTE: This file must contain only valid Python source (no pasted git diff hunks like "@@ ... @@").
 import datetime
+import glob
 import logging
 import os
 import random
@@ -62,9 +63,29 @@ CST_TZ = ZoneInfo("America/Chicago")
 
 BOT_DIR = os.path.dirname(os.path.abspath(__file__))
 LOG_DIR = BOT_DIR
-LOG_FILE = os.path.join(LOG_DIR, "memebot.log")
+MAX_LOG_FILES = 5
 SENT_MEMES_FILE = os.path.join(BOT_DIR, "sent_memes.txt")
 LOCK_FILE = os.path.join(BOT_DIR, "memebot.lock")
+
+
+def _configure_log_file() -> str:
+    timestamp = datetime.datetime.now().strftime("%m%Y%d-%H%M%S")
+    log_file = os.path.join(LOG_DIR, f"memebot-{timestamp}.log")
+    log_pattern = os.path.join(LOG_DIR, "memebot-*.log")
+    existing_logs = sorted(glob.glob(log_pattern), key=os.path.getmtime)
+
+    while len(existing_logs) >= MAX_LOG_FILES:
+        oldest_log = existing_logs.pop(0)
+        try:
+            os.remove(oldest_log)
+        except OSError as exc:
+            print(f"Warning: failed to delete old log file {oldest_log}: {exc}", file=sys.stderr)
+            break
+
+    return log_file
+
+
+LOG_FILE = _configure_log_file()
 
 
 def _release_lock() -> None:
