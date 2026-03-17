@@ -1,0 +1,7 @@
+2026-03-16 16:21:03,863 | INFO | 
+========================================================================
+2026-03-16 16:21:03,864 | INFO | Starting new memebot instance (pid=12324)
+2026-03-16 16:21:03,867 | INFO | Acquired single-instance lock at C:\DiscordBots\memebot\memebot.lock
+2026-03-16 16:21:03,875 | WARNING | PyNaCl is not installed, voice will NOT be supported
+2026-03-16 16:21:03,875 | WARNING | davey is not installed, voice will NOT be supported
+2026-03-16 16:21:03,877 | INFO | logging in using static token

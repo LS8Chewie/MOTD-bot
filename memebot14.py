@@ -4,7 +4,7 @@ import glob
 import logging
 import os
 import random
-import sys
+
 from typing import Optional, Set
 
 import discord
