@@ -1,0 +1,24 @@
+2026-03-23 14:16:09,665 | INFO | 
+========================================================================
+2026-03-23 14:16:09,665 | INFO | Starting new memebot instance (pid=13020)
+2026-03-23 14:16:09,666 | INFO | Acquired single-instance lock at C:\DiscordBots\memebot\memebot.lock
+2026-03-23 14:16:09,667 | WARNING | PyNaCl is not installed, voice will NOT be supported
+2026-03-23 14:16:09,667 | WARNING | davey is not installed, voice will NOT be supported
+2026-03-23 14:16:09,668 | INFO | logging in using static token
+2026-03-23 14:16:12,020 | INFO | Shard ID None has connected to Gateway (Session ID: acd37c5339ba97a5e9430d2eed4ad581).
+2026-03-23 14:16:14,029 | INFO | Logged in as F.A.R.T#8447
+2026-03-23 14:16:14,029 | INFO | Writing logs to C:\DiscordBots\memebot\memebot-20260323-141609.log
+2026-03-23 14:16:14,029 | INFO | Tracking sent memes in C:\DiscordBots\memebot\sent_memes.txt
+2026-03-23 14:16:14,029 | INFO | Configured target channel from CHANNEL_ID env var: 1480255446999629925
+2026-03-23 14:16:14,030 | INFO | Message publish is enabled
+2026-03-23 14:16:14,030 | INFO | Delay between sends is 5 second(s).
+2026-03-23 14:16:14,030 | INFO | Publish delay between messages is 2 second(s).
+2026-03-23 14:16:14,030 | INFO | Meme grouping is disabled (individual mode) (GROUP_COUNT=0, UNGROUPED_MESSAGE_COUNT=2, MAX_FILES_PER_MESSAGE=3)
+2026-03-23 14:16:14,030 | INFO | Schedule configured from env hour='12' minute='30'; effective CST time 12:30.
+2026-03-23 14:16:14,031 | INFO | Current CST time is 14:16; next scheduled post is 12:30 CST.
+2026-03-23 14:16:14,031 | INFO | Scheduled time 12:30 CST has already passed today; posting immediately.
+2026-03-23 14:16:14,057 | INFO | Prepared 5818 unsent meme(s) from 5883 total file(s) in 'memes'.
+2026-03-23 14:16:14,765 | INFO | Sent message 1485718837939929222 to channel 1480255446999629925.
+2026-03-23 14:16:14,766 | INFO | Waiting 5 second(s) before the next send.
+2026-03-23 14:16:19,885 | WARNING | We are being rate limited. POST https://discord.com/api/v10/channels/1480255446999629925/messages/1485718837939929222/crosspost responded with 429. Retrying in 824.56 seconds.
+2026-03-23 14:16:29,185 | INFO | Released instance lock at C:\DiscordBots\memebot\memebot.lock

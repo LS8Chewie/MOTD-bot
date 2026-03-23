@@ -1,0 +1,36 @@
+2026-03-23 14:32:37,443 | INFO | 
+========================================================================
+2026-03-23 14:32:37,443 | INFO | Starting new memebot instance (pid=8968)
+2026-03-23 14:32:37,444 | INFO | Acquired single-instance lock at C:\DiscordBots\memebot\memebot.lock
+2026-03-23 14:32:37,450 | WARNING | PyNaCl is not installed, voice will NOT be supported
+2026-03-23 14:32:37,451 | WARNING | davey is not installed, voice will NOT be supported
+2026-03-23 14:32:37,452 | INFO | logging in using static token
+2026-03-23 14:32:38,885 | INFO | Shard ID None has connected to Gateway (Session ID: f55ee8db716e89d88c1fffe1f528e795).
+2026-03-23 14:32:40,899 | INFO | Logged in as F.A.R.T#8447
+2026-03-23 14:32:40,899 | INFO | Writing logs to C:\DiscordBots\memebot\memebot-03202623-143237.log
+2026-03-23 14:32:40,900 | INFO | Tracking sent memes in C:\DiscordBots\memebot\sent_memes.txt
+2026-03-23 14:32:40,900 | INFO | Configured target channel from CHANNEL_ID env var: 1480255446999629925
+2026-03-23 14:32:40,900 | INFO | Message publish is enabled
+2026-03-23 14:32:40,900 | INFO | Meme grouping is disabled (individual mode) (GROUP_COUNT=0, UNGROUPED_MESSAGE_COUNT=2, MAX_FILES_PER_MESSAGE=3)
+2026-03-23 14:32:40,900 | INFO | Schedule configured from env hour='12' minute='30'; effective CST time 12:30.
+2026-03-23 14:32:40,901 | INFO | Current CST time is 14:32; next scheduled post is 12:30 CST.
+2026-03-23 14:32:40,901 | INFO | Scheduled time 12:30 CST has already passed today; posting immediately.
+2026-03-23 14:32:41,264 | INFO | Published message 1485722976279068894 to followers.
+2026-03-23 14:32:42,169 | INFO | Published message 1485722978699182161 to followers.
+2026-03-23 14:32:42,169 | INFO | Sent meme as individual message: pinterest_image_1763663886048.jpg
+2026-03-23 14:32:43,006 | INFO | Published message 1485722982453350422 to followers.
+2026-03-23 14:32:43,006 | INFO | Sent meme as individual message: pinterest_image_1763663886049.jpg
+2026-03-23 14:32:43,006 | INFO | Queued sent meme: pinterest_image_1763663886048.jpg
+2026-03-23 14:32:43,007 | INFO | Queued sent meme: pinterest_image_1763663886049.jpg
+2026-03-23 14:32:43,008 | INFO | Updated sent-meme memory at C:\DiscordBots\memebot\sent_memes.txt
+2026-03-23 14:32:43,009 | ERROR | Ignoring exception in on_ready
+Traceback (most recent call last):
+  File "C:\Users\ewchu\AppData\Local\Programs\Python\Python314\Lib\site-packages\discord\client.py", line 508, in _run_event
+    await coro(*args, **kwargs)
+  File "C:\DiscordBots\memebot\memebot14.py", line 395, in on_ready
+    await post_memes(is_startup=False)
+  File "C:\DiscordBots\memebot\memebot14.py", line 341, in post_memes
+    await asyncio.sleep(2)
+          ^^^^^^^
+NameError: name 'asyncio' is not defined. Did you forget to import 'asyncio'?
+2026-03-23 14:32:58,178 | INFO | Released instance lock at C:\DiscordBots\memebot\memebot.lock

@@ -1,10 +1,8 @@
-# NOTE: This file must contain only valid Python source (no pasted git diff hunks like "@@ ... @@").
 import datetime
-import glob
 import logging
 import os
 import random
-
+import sys
 from typing import Optional, Set
 
 import discord
@@ -13,79 +11,22 @@ from discord.ext import tasks
 TOKEN = os.getenv("DISCORD_TOKEN")
 CHANNEL_ID_RAW = os.getenv("CHANNEL_ID")
 MEME_FOLDER = os.getenv("MEME_FOLDER", "memes")
-SCHEDULE_HOUR_RAW = (
-    os.getenv("SCHEDULE_HOUR_CST")
-    or os.getenv("SCHEDULE_HOUR")
-    or os.getenv("SCHEDULE_HOUR_UTC")
-    or "18"
-)
-SCHEDULE_MINUTE_RAW = (
-    os.getenv("SCHEDULE_MINUTE_CST")
-    or os.getenv("SCHEDULE_MINUTE")
-    or os.getenv("SCHEDULE_MINUTE_UTC")
-    or "0"
-)
-def _parse_int_env(raw_value: str, env_name: str) -> int:
-    try:
-        return int(raw_value)
-    except ValueError as exc:
-        raise RuntimeError(f"Invalid {env_name} value '{raw_value}'. Expected an integer.") from exc
-
-
-SCHEDULE_HOUR = _parse_int_env(SCHEDULE_HOUR_RAW, "SCHEDULE_HOUR")
-SCHEDULE_MINUTE = _parse_int_env(SCHEDULE_MINUTE_RAW, "SCHEDULE_MINUTE")
+SCHEDULE_HOUR_RAW = os.getenv("SCHEDULE_HOUR_UTC") or os.getenv("SCHEDULE_HOUR") or "18"
+SCHEDULE_MINUTE_RAW = os.getenv("SCHEDULE_MINUTE_UTC") or os.getenv("SCHEDULE_MINUTE") or "0"
+SCHEDULE_HOUR = int(SCHEDULE_HOUR_RAW)
+SCHEDULE_MINUTE = int(SCHEDULE_MINUTE_RAW)
 POST_ON_STARTUP = os.getenv("POST_ON_STARTUP", "false").strip().lower() in {
     "1",
     "true",
     "yes",
     "on",
 }
-ENABLE_PUBLISH = os.getenv("ENABLE_PUBLISH", "false").strip().lower() in {
-    "1",
-    "true",
-    "yes",
-    "on",
-}
-GROUP_MEMES = os.getenv("GROUP_MEMES", "true").strip().lower() in {
-    "1",
-    "true",
-    "yes",
-    "on",
-}
-GROUP_COUNT_RAW = os.getenv("GROUP_COUNT", "1")
-UNGROUPED_MESSAGE_COUNT_RAW = os.getenv("UNGROUPED_MESSAGE_COUNT", "3")
-GROUP_COUNT = _parse_int_env(GROUP_COUNT_RAW, "GROUP_COUNT")
-UNGROUPED_MESSAGE_COUNT = _parse_int_env(UNGROUPED_MESSAGE_COUNT_RAW, "UNGROUPED_MESSAGE_COUNT")
-MAX_FILES_PER_MESSAGE = 3
-
-from zoneinfo import ZoneInfo
-CST_TZ = ZoneInfo("America/Chicago")
 
 BOT_DIR = os.path.dirname(os.path.abspath(__file__))
 LOG_DIR = BOT_DIR
-MAX_LOG_FILES = 5
+LOG_FILE = os.path.join(LOG_DIR, "memebot.log")
 SENT_MEMES_FILE = os.path.join(BOT_DIR, "sent_memes.txt")
 LOCK_FILE = os.path.join(BOT_DIR, "memebot.lock")
-
-
-def _configure_log_file() -> str:
-    timestamp = datetime.datetime.now().strftime("%m%Y%d-%H%M%S")
-    log_file = os.path.join(LOG_DIR, f"memebot-{timestamp}.log")
-    log_pattern = os.path.join(LOG_DIR, "memebot-*.log")
-    existing_logs = sorted(glob.glob(log_pattern), key=os.path.getmtime)
-
-    while len(existing_logs) >= MAX_LOG_FILES:
-        oldest_log = existing_logs.pop(0)
-        try:
-            os.remove(oldest_log)
-        except OSError as exc:
-            print(f"Warning: failed to delete old log file {oldest_log}: {exc}", file=sys.stderr)
-            break
-
-    return log_file
-
-
-LOG_FILE = _configure_log_file()
 
 
 def _release_lock() -> None:
@@ -104,9 +45,6 @@ def _pid_is_running(pid: int) -> bool:
         return False
     except PermissionError:
         return True
-    except OSError as exc:
-        logger.warning("Could not probe pid %s for lock validation: %s", pid, exc)
-        return False
 
     return True
 
@@ -173,9 +111,8 @@ def save_sent_memes(sent_memes: Set[str]) -> None:
             f.write(f"{meme}\n")
 
 
-
-def schedule_time_has_passed_today_cst() -> bool:
-    now = datetime.datetime.now(CST_TZ)
+def schedule_time_has_passed_today_utc() -> bool:
+    now = datetime.datetime.now(datetime.timezone.utc)
     scheduled = now.replace(
         hour=SCHEDULE_HOUR,
         minute=SCHEDULE_MINUTE,
@@ -189,22 +126,12 @@ def schedule_time_has_passed_today_cst() -> bool:
 def validate_schedule_time() -> None:
     if not (0 <= SCHEDULE_HOUR <= 23):
         raise RuntimeError(
-            f"Invalid schedule hour '{SCHEDULE_HOUR_RAW}'. Expected 0-23 via SCHEDULE_HOUR_CST, SCHEDULE_HOUR, or SCHEDULE_HOUR_UTC."
+            f"Invalid schedule hour '{SCHEDULE_HOUR_RAW}'. Expected 0-23 via SCHEDULE_HOUR_UTC or SCHEDULE_HOUR."
         )
 
     if not (0 <= SCHEDULE_MINUTE <= 59):
         raise RuntimeError(
-            f"Invalid schedule minute '{SCHEDULE_MINUTE_RAW}'. Expected 0-59 via SCHEDULE_MINUTE_CST, SCHEDULE_MINUTE, or SCHEDULE_MINUTE_UTC."
-        )
-
-    if GROUP_COUNT < 0:
-        raise RuntimeError(
-            f"Invalid GROUP_COUNT '{GROUP_COUNT_RAW}'. Expected an integer >= 0."
-        )
-
-    if UNGROUPED_MESSAGE_COUNT < 1:
-        raise RuntimeError(
-            f"Invalid UNGROUPED_MESSAGE_COUNT '{UNGROUPED_MESSAGE_COUNT_RAW}'. Expected an integer >= 1."
+            f"Invalid schedule minute '{SCHEDULE_MINUTE_RAW}'. Expected 0-59 via SCHEDULE_MINUTE_UTC or SCHEDULE_MINUTE."
         )
 
 
@@ -212,7 +139,7 @@ def validate_schedule_time() -> None:
     time=datetime.time(
         hour=SCHEDULE_HOUR,
         minute=SCHEDULE_MINUTE,
-        tzinfo=CST_TZ,
+        tzinfo=datetime.timezone.utc,
     )
 )
 async def meme_of_the_day():
@@ -235,13 +162,9 @@ async def send_and_publish(
     channel: discord.abc.Messageable,
     *,
     content: Optional[str] = None,
-    files: Optional[list[discord.File]] = None,
+    file: Optional[discord.File] = None,
 ) -> discord.Message:
-    message = await channel.send(content=content, files=files)
-
-    if not ENABLE_PUBLISH:
-        logger.info("Skipping publish for message %s because ENABLE_PUBLISH is disabled.", message.id)
-        return message
+    message = await channel.send(content=content, file=file)
 
     try:
         await message.publish()
@@ -281,59 +204,13 @@ async def post_memes(is_startup: bool) -> None:
         )
         return
 
-    posted_memes: list[str] = []
+    selected_memes = random.sample(available_memes, min(5, len(available_memes)))
 
-    if GROUP_MEMES and GROUP_COUNT > 0:
-        max_memes_to_send = GROUP_COUNT * MAX_FILES_PER_MESSAGE
-        selected_memes = available_memes[:max_memes_to_send]
-        sent_groups = 0
-
-        for start in range(0, len(selected_memes), MAX_FILES_PER_MESSAGE):
-            if sent_groups >= GROUP_COUNT:
-                break
-
-            group_memes = selected_memes[start : start + MAX_FILES_PER_MESSAGE]
-            batch_files: list[discord.File] = []
-
-            for meme in group_memes:
-                meme_path = os.path.join(MEME_FOLDER, meme)
-                try:
-                    batch_files.append(discord.File(meme_path))
-                    posted_memes.append(meme)
-                except OSError as exc:
-                    logger.warning("Skipping meme '%s' because it could not be opened (%s)", meme, exc)
-
-            if not batch_files:
-                logger.warning("No readable meme files were found in selected group; skipping send.")
-                continue
-
-            await send_and_publish(channel, files=batch_files)
-            sent_groups += 1
-            logger.info(
-                "Sent group %s/%s with %s meme file(s).",
-                sent_groups,
-                GROUP_COUNT,
-                len(batch_files),
-            )
-    else:
-        selected_memes = available_memes[:UNGROUPED_MESSAGE_COUNT]
-
-        for meme in selected_memes:
-            meme_path = os.path.join(MEME_FOLDER, meme)
-            try:
-                await send_and_publish(channel, files=[discord.File(meme_path)])
-                posted_memes.append(meme)
-                logger.info("Sent meme as individual message: %s", meme)
-            except OSError as exc:
-                logger.warning("Skipping meme '%s' because it could not be opened (%s)", meme, exc)
-
-    if not posted_memes:
-        logger.warning("No readable meme files were found in selected send window; skipping send.")
-        return
-
-    for meme in posted_memes:
+    for meme in selected_memes:
+        meme_path = os.path.join(MEME_FOLDER, meme)
+        await send_and_publish(channel, file=discord.File(meme_path))
         sent_memes.add(meme)
-        logger.info("Queued sent meme: %s", meme)
+        logger.info("Posted meme: %s", meme)
 
     save_sent_memes(sent_memes)
     logger.info("Updated sent-meme memory at %s", SENT_MEMES_FILE)
@@ -357,26 +234,18 @@ async def on_ready():
     logger.info("Writing logs to %s", LOG_FILE)
     logger.info("Tracking sent memes in %s", SENT_MEMES_FILE)
     logger.info("Configured target channel from CHANNEL_ID env var: %s", CHANNEL_ID)
-    logger.info("Message publish is %s", "enabled" if ENABLE_PUBLISH else "disabled")
+    now_utc = datetime.datetime.now(datetime.timezone.utc)
     logger.info(
-        "Meme grouping is %s (GROUP_COUNT=%s, UNGROUPED_MESSAGE_COUNT=%s, MAX_FILES_PER_MESSAGE=%s)",
-        "enabled" if (GROUP_MEMES and GROUP_COUNT > 0) else "disabled (individual mode)",
-        GROUP_COUNT,
-        UNGROUPED_MESSAGE_COUNT,
-        MAX_FILES_PER_MESSAGE,
-    )
-    now_cst = datetime.datetime.now(CST_TZ)
-    logger.info(
-        "Schedule configured from env hour='%s' minute='%s'; effective CST time %02d:%02d.",
+        "Schedule configured from env hour='%s' minute='%s'; effective UTC time %02d:%02d.",
         SCHEDULE_HOUR_RAW,
         SCHEDULE_MINUTE_RAW,
         SCHEDULE_HOUR,
         SCHEDULE_MINUTE,
     )
     logger.info(
-        "Current CST time is %02d:%02d; next scheduled post is %02d:%02d CST.",
-        now_cst.hour,
-        now_cst.minute,
+        "Current UTC time is %02d:%02d; next scheduled post is %02d:%02d UTC.",
+        now_utc.hour,
+        now_utc.minute,
         SCHEDULE_HOUR,
         SCHEDULE_MINUTE,
     )
@@ -386,9 +255,9 @@ async def on_ready():
         await post_memes(is_startup=True)
         return
 
-    if schedule_time_has_passed_today_cst():
+    if schedule_time_has_passed_today_utc():
         logger.info(
-            "Scheduled time %02d:%02d CST has already passed today; posting immediately.",
+            "Scheduled time %02d:%02d UTC has already passed today; posting immediately.",
             SCHEDULE_HOUR,
             SCHEDULE_MINUTE,
         )
@@ -407,4 +276,3 @@ except KeyboardInterrupt:
     logger.info("Bot stopped manually.")
 finally:
     _release_lock()
-    
